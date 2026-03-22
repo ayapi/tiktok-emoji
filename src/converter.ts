@@ -8,8 +8,10 @@ export interface ConvertOptions {
   config?: BeansEmojiConfig;
 }
 
-export function resolveEmojiUrl(_emojiCode: string, _config: BeansEmojiConfig): string | undefined {
-  return undefined;
+export function resolveEmojiUrl(emojiCode: string, config: BeansEmojiConfig): string | undefined {
+  if (!config.emojis.includes(emojiCode)) return undefined;
+  const name = emojiCode.replace(/^\[|\]$/g, '');
+  return `${config.base_url}/${name}.webp`;
 }
 
 export function convertCustomEmoji(text: string, _options?: ConvertOptions): string {
