@@ -58,9 +58,20 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     return;
   }
 
-  const options = body.config
-    ? { config: body.config as { base_url: string; emojis: string[] } }
-    : undefined;
+  let options: { config: { base_url: string; emojis: string[] } } | undefined;
+  if (body.config !== undefined) {
+    const cfg = body.config;
+    if (
+      !cfg || typeof cfg !== 'object' || Array.isArray(cfg) ||
+      typeof (cfg as Record<string, unknown>).base_url !== 'string' ||
+      !Array.isArray((cfg as Record<string, unknown>).emojis) ||
+      !(cfg as Record<string, unknown[]>).emojis.every((e: unknown) => typeof e === 'string')
+    ) {
+      sendJson(res, 400, { error: 'config の形式が不正です (base_url: string, emojis: string[] が必要)' });
+      return;
+    }
+    options = { config: cfg as { base_url: string; emojis: string[] } };
+  }
 
   const html = convertCustomEmoji(body.text, options);
   sendJson(res, 200, { html });

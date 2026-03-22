@@ -87,6 +87,21 @@ describe('POST /convert', () => {
     expect(json.error).toBeDefined();
   });
 
+  it('不正な config (emojis が null) で 400 エラーを返す', async () => {
+    const { status, json } = await postConvert({
+      text: 'hello',
+      config: { base_url: 'https://example.com', emojis: null },
+    });
+    expect(status).toBe(400);
+    expect(json.error).toBeDefined();
+  });
+
+  it('不正な config (空オブジェクト) で 400 エラーを返す', async () => {
+    const { status, json } = await postConvert({ text: 'hello', config: {} });
+    expect(status).toBe(400);
+    expect(json.error).toBeDefined();
+  });
+
   it('不正な Content-Type で 400 エラーを返す', async () => {
     const res = await fetch(`${baseUrl}/convert`, {
       method: 'POST',
