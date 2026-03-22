@@ -1,4 +1,7 @@
-// placeholder - implemented in Task 3
+import { DEFAULT_BEANS_EMOJI_CONFIG } from './data/emoji-map';
+
+const EMOJI_PATTERN = /(\[[a-zA-Z0-9_]+\])/g;
+
 export interface BeansEmojiConfig {
   readonly base_url: string;
   readonly emojis: readonly string[];
@@ -14,6 +17,10 @@ export function resolveEmojiUrl(emojiCode: string, config: BeansEmojiConfig): st
   return `${config.base_url}/${name}.webp`;
 }
 
-export function convertCustomEmoji(text: string, _options?: ConvertOptions): string {
-  return text;
+export function convertCustomEmoji(text: string, options?: ConvertOptions): string {
+  const config = options?.config ?? DEFAULT_BEANS_EMOJI_CONFIG;
+  return text.replace(EMOJI_PATTERN, (match) => {
+    const url = resolveEmojiUrl(match, config);
+    return url ? `<img src="${url}">` : match;
+  });
 }
