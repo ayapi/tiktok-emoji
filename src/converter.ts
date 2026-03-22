@@ -1,6 +1,6 @@
 import { DEFAULT_BEANS_EMOJI_CONFIG } from './data/emoji-map';
 
-const EMOJI_PATTERN = /(\[[a-zA-Z0-9_]+\])/g;
+const EMOJI_PATTERN = /\[[a-zA-Z0-9_]+\]/g;
 
 export interface BeansEmojiConfig {
   readonly base_url: string;
@@ -13,7 +13,7 @@ export interface ConvertOptions {
 
 export function resolveEmojiUrl(emojiCode: string, config: BeansEmojiConfig): string | undefined {
   if (!config.emojis.includes(emojiCode)) return undefined;
-  const name = emojiCode.replace(/^\[|\]$/g, '');
+  const name = emojiCode.slice(1, -1);
   return `${config.base_url}/${name}.webp`;
 }
 

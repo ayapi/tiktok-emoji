@@ -75,6 +75,12 @@ describe('convertCustomEmoji', () => {
     );
   });
 
+  it('隣接する絵文字コードを個別に変換する', () => {
+    expect(convertCustomEmoji('[wow][laugh]')).toBe(
+      `<img src="${BASE}/wow.webp"><img src="${BASE}/laugh.webp">`,
+    );
+  });
+
   it('カスタム設定ではデフォルト絵文字を認識しない', () => {
     const customConfig = {
       base_url: 'https://example.com',
