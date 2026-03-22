@@ -1,7 +1,7 @@
 // placeholder - implemented in Task 3
 export interface BeansEmojiConfig {
-  base_url: string;
-  emojis: string[];
+  readonly base_url: string;
+  readonly emojis: readonly string[];
 }
 
 export interface ConvertOptions {
