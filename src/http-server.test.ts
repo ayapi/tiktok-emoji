@@ -54,6 +54,12 @@ describe('POST /convert', () => {
     expect(json.html).toBe('<img src="https://example.com/custom.webp"> text');
   });
 
+  it('application/json; charset=utf-8 を許容する', async () => {
+    const { status, json } = await postConvert({ text: '[wow]' }, 'application/json; charset=utf-8');
+    expect(status).toBe(200);
+    expect(json.html).toBe(`<img src="${BASE}/wow.webp">`);
+  });
+
   it('空ボディで 400 エラーを返す', async () => {
     const res = await fetch(`${baseUrl}/convert`, {
       method: 'POST',
@@ -71,6 +77,12 @@ describe('POST /convert', () => {
 
   it('不正な JSON で 400 エラーを返す', async () => {
     const { status, json } = await postConvert('{invalid json', 'application/json');
+    expect(status).toBe(400);
+    expect(json.error).toBeDefined();
+  });
+
+  it('JSON プリミティブ (null) で 400 エラーを返す', async () => {
+    const { status, json } = await postConvert('null', 'application/json');
     expect(status).toBe(400);
     expect(json.error).toBeDefined();
   });
@@ -93,5 +105,18 @@ describe('Method Not Allowed', () => {
     expect(res.status).toBe(405);
     const json = await res.json() as Record<string, unknown>;
     expect(json.error).toBe('Method Not Allowed');
+  });
+});
+
+describe('Not Found', () => {
+  it('存在しないパスで 404 エラーを返す', async () => {
+    const res = await fetch(`${baseUrl}/unknown`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'hello' }),
+    });
+    expect(res.status).toBe(404);
+    const json = await res.json() as Record<string, unknown>;
+    expect(json.error).toBe('Not Found');
   });
 });

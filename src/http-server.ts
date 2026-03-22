@@ -15,14 +15,20 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-async function handleConvert(req: IncomingMessage, res: ServerResponse): Promise<void> {
+async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+  if (url.pathname !== '/convert') {
+    sendJson(res, 404, { error: 'Not Found' });
+    return;
+  }
+
   if (req.method !== 'POST') {
     sendJson(res, 405, { error: 'Method Not Allowed' });
     return;
   }
 
-  const contentType = req.headers['content-type'] ?? '';
-  if (!contentType.includes('application/json')) {
+  const contentType = (req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+  if (contentType !== 'application/json') {
     sendJson(res, 400, { error: 'Content-Type は application/json である必要があります' });
     return;
   }
@@ -33,14 +39,20 @@ async function handleConvert(req: IncomingMessage, res: ServerResponse): Promise
     return;
   }
 
-  let body: Record<string, unknown>;
+  let parsed: unknown;
   try {
-    body = JSON.parse(raw) as Record<string, unknown>;
+    parsed = JSON.parse(raw);
   } catch {
     sendJson(res, 400, { error: 'JSON の解析に失敗しました' });
     return;
   }
 
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    sendJson(res, 400, { error: 'JSON の解析に失敗しました' });
+    return;
+  }
+
+  const body = parsed as Record<string, unknown>;
   if (typeof body.text !== 'string') {
     sendJson(res, 400, { error: 'text フィールドは必須です' });
     return;
@@ -56,8 +68,10 @@ async function handleConvert(req: IncomingMessage, res: ServerResponse): Promise
 
 export function createServer() {
   return createHttpServer((req, res) => {
-    handleConvert(req, res).catch(() => {
-      sendJson(res, 500, { error: 'Internal Server Error' });
+    handleRequest(req, res).catch(() => {
+      if (!res.headersSent) {
+        sendJson(res, 500, { error: 'Internal Server Error' });
+      }
     });
   });
 }
